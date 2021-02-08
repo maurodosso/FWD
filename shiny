@@ -1,0 +1,105 @@
+library(shiny)
+library(lubridate)
+fluidPage(
+  titlePanel(p(img(src="DPV.jpg",height = 75),
+            style="text-align: center;","DPV - Santa Fe - Direccion General de Programacion", 
+               style = "color:#3474A7", 
+               img(src="shared.png", height=75, width=75))),
+  sidebarLayout(
+    sidebarPanel(
+      fluidRow(
+          helpText(h4("Personal interviniente")),
+          selectInput("Operador", label = "Operador:", 
+                      choices = list("Javier"= "Battion, Javier",
+                                     "Eloy"= "Magnago, Eloy",
+                                     "Marina"="Cortese, Marina",
+                                     "Mariana"="Diaz, Mariana",
+                                     "Facundo"="Marini, Facundo")
+          ),
+          selectInput("Seguridad", label = "Seguridad:", 
+                      choices = list("Matias"= "Leguiza, Matias",
+                                     "Eloy"= "Magnago, Eloy")
+          ),
+          selectInput("Chofer", label = "Chofer:", 
+                      choices = list("Eloy"= "Magnago, Eloy",
+                                     "Claudio"="Hilbe, Claudio")
+          ),
+          selectInput("RutaNum", label = "Ruta:", 
+                      choices = {list( "RP 1"="RP 1", "RP 2" ="RP 2", "RP 3" ="RP 3", "RP 4" = "RP 4" , "RP 5" = "RP 5", 
+                                      "RP 6" = "RP 6","RP 10" ="RP 10","RP 13"="RP 13", "RP 14"="RP 14", "RP 15" ="RP 15", 
+                                      "RP 18" ="RP 18","RP 20" ="RP 20", "RP 21" ="RP 21","RP 22" ="RP 22", 
+                                      "RP 23" ="RP 23", "RP 25" ="RP 25","RP 30" = "RP 30","RP 31" ="RP 31",
+                                      "RP 32" ="RP 32","RP 35" ="RP 35", "RP 36" ="RP 36", "RP 37" ="RP 37",
+                                      "RP 38" ="RP 38", "RP 39" ="RP 39","RP 40" ="RP 40","RP 41" = "RP 41",
+                                      "RP 42" ="RP 42", "RP 60" ="RP 60","RP 61" = "RP 61","RP 62" ="RP 62",
+                                      "RP 63" ="RP 63","RP 64" ="RP 64", "RP 65" ="RP 65","RP 66" = "RP 66",
+                                      "RP 68" ="RP 68", "RP 70" ="RP 70","RP 80" ="RP 80","RP 90" ="RP 90", 
+                                      "RP 91" = "RP 91","RP 92" = "RP 92","RP 93" = "RP 93","RP 94" = "RP 94",
+                                      "RP 95" ="RP 95",
+                                      "RP 1S" ="RP 1S", "RP 2S" ="RP 2S", "RP 3S" ="RP 3S", "RP 4S" ="RP 4S", 
+                                      "RP 5S" ="RP 5S", "RP 6S" ="RP 6S", "RP 7S"="RP 7S", "RP 8S" ="RP 8S", 
+                                      "RP 9S" ="RP 9S", "RP 10S" ="RP 10S","RP 11S" ="RP 11S","RP 12S"="RP 12S",
+                                      "RP 13S" ="RP 13S","RP 14S" ="RP 14S","RP 15S" ="RP 15S","RP 16S" ="RP 16S",
+                                      "RP 17S" ="RP 17S","RP 18S" ="RP 18S","RP 19S" ="RP 19S","RP 20S" ="RP 20S",
+                                      "RP 21S"="RP 21S","RP 22S" ="RP 22S","RP 23S"="RP 23S","RP 24S" ="RP 24S",
+                                      "RP 25S" ="RP 25S","RP 26S" ="RP 26S","RP 27S" ="RP 27S","RP 28S" ="RP 28S",
+                                      "RP 29S" ="RP 29S","RP 30S" ="RP 30S","RP 31S" ="RP 31S","RP 32S" ="RP 32S",
+                                      "RP 33S" ="RP 33S","RP 34S"="RP 34S", "RP 35S" ="RP 35S","RP 36S" ="RP 36S",
+                                      "RP 37S" ="RP 37S","RP 40S" ="RP 40S","RP 41S" ="RP 41S","RP 42S" ="RP 42S" ,
+                                      "RP 43S" ="RP 43S","RP 44S" ="RP 44S","RP 45S" ="RP 45S","RP 48S" ="RP 48S",
+                                      "RP 49S" ="RP 49S","RP 50S" ="RP 50S","RP 51S" ="RP 51S","RP 52S" ="RP 52S",
+                                      "RP 53S" ="RP 53S","RP 54S" ="RP 54S","RP 55S" ="RP 55S","RP 56S" ="RP 56S",
+                                      "RP 58S" ="RP 58S","RP 60S" ="RP 60S","RP 61S" ="RP 61S","RP 62S"="RP 62S",
+                                      "RP 63S" ="RP 63S","RP 64S" ="RP 64S","RP 65S" ="RP 65S","RP 67S" ="RP 67S",
+                                      "RP 69S" ="RP 69S","RP 70S" ="RP 70S","RP 71S" ="RP 71S","RP 72S" ="RP 72S",
+                                      "RP 73S" ="RP 73S","RP 74S" ="RP 74S","RP 75S"="RP 75S", "RP 76S" ="RP 76S",
+                                      "RP 77S" ="RP 77S","RP 79S" ="RP 79S","RP 80S" ="RP 80S","RP 81S" ="RP 81S",
+                                      "RP 82S" ="RP 82S","RP 83S" ="RP 83S","RP 84S" ="RP 84S","RP 85S" ="RP 85S",
+                                      "RP 86S" ="RP 86S","RP 87S"="RP 87S","RP 88S" ="RP 88S","RP 89S" ="RP 89S",
+                                      "RP 90S" ="RP 90S","RP 91S" ="RP 91S","RP 92S" ="RP 92S","RP 93S" ="RP 93S",
+                                      "RP 94S" ="RP 94S","RP 95S" ="RP 95S" ,"RP 96S" ="RP 96S","RP 97S" ="RP 97S",
+                                      "RP 98S" ="RP 98S","RP 100S"="RP 100S","RP 101S"="RP 101S","RP 102S"="RP 102S",
+                                      "RP 103S"="RP 103S","RP 201S"="RP 201S","RP 202S"="RP 202S","RP 203S"="RP 203S",
+                                      "RP 208S"="RP 208S","RP 209S"="RP 209S","RP 219S"="RP 219S","RP 224S"="RP 224S",
+                                      "RP 225S"="RP 225S","RP 229S"="RP 229S","RP 253S"="RP 253S","RP 254S"="RP 254S",
+                                      "RP 261S"="RP 261S","RP 262S"="RP 262S","RP 265S"="RP 265S","RP 271S"="RP 271S",
+                                      "RP 275S"="RP 275S","RP 277S"="RP 277S","RP 280S"="RP 280S", "RP 281S"="RP 281S",
+                                      "RP 282S"="RP 282S","RP 284S"="RP 284S","RP 285S"="RP 285S","RP 286S"="RP 286S",
+                                      "RP 287S"="RP 287S","RP 288S"="RP 288S","RP 290S"="RP 290S","RP 291S"="RP 291S",
+                                      "RP 292S"="RP 292S","RP 293S"="RP 293S","RP 294S"="RP 294S","RP 295S"="RP 295S",
+                                      "RP 296S"="RP 296S","RP 297S"="RP 297S","RP 298S"="RP 298S","RP 353S"="RP 353S",
+                                      "RP 355S"="RP 355S") } 
+                      ),
+          textInput("Tramo", label = "Tramo:"),
+          
+          dateRangeInput("fecha", "Fecha Ensayo:", max = today(), min = (today()-365),language = "es",weekstart = 1,separator = "al")
+            
+            
+          ),
+     
+       helpText(h5("Carril Ascendente")),
+      #Ingreso fwd Ascendente
+      fixedRow(
+          column(width = 6, fileInput("file1",h5("1er fwd"),accept = ".fwd",multiple = FALSE),style='padding:0px;'), 
+          column(width = 6, fileInput("file2",h5("2do fwd")),style='padding:0px;'),
+          offset=1),
+      
+      
+        helpText(h5("Carril Descendente")),
+      #Ingreso fwd Descendente
+       fixedRow(
+        column(width = 6, fileInput("file3",h5("1er fwd")),style='padding:0px;'), 
+        column(width = 6, fileInput("file4",h5("2do fwd")),style='padding:0px;'),
+        offset=1),
+     
+      
+      
+      
+      downloadButton('TablaDatos',label = "Descargar Tabla")
+    ),
+    mainPanel(
+          uiOutput("tb")
+    )
+  )
+)
+
