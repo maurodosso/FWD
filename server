@@ -1,0 +1,692 @@
+library(shiny)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(DT)
+library(xts)
+library(dygraphs)
+library(devtools)
+library(openxlsx)
+
+
+function(input, output) {
+  
+  DatosAsc <- reactive({
+    file1 <- input$file1
+    file2 <- input$file2
+    
+    if (is.null(file2) & is.null(file1)){}
+    
+      else  
+        if (is.null(file2))({
+          
+          LecturaDeFWD <-function(NumeroDeFila){
+            read.delim2(file=file1$datapath, header = FALSE,skip=NumeroDeFila, sep = "\t", dec = ",")}
+          
+          datos<- LecturaDeFWD(30)
+          
+          Intervalos<-function(NumRow){
+            dim1<- dim(datos)
+            input<- 1:(dim1[1])
+            x11<-input[(input %% NumRow) == 0]  }                                     
+          
+          Prog<-NULL
+          Progresiva<-NULL
+          Car<-NULL 
+          Carril<-NULL
+          Com<-NULL 
+          Comentario<-NULL
+          Alt.C<-NULL 
+          Alt.Caida<-NULL
+          Hor<-NULL 
+          Hora<-NULL
+          Val<-NULL  
+          Valores<-NULL
+          
+          
+          for (i in Intervalos(11)){      Prog<- datos[i-2,2]
+          Progresiva<- rbind(Progresiva,Prog)
+          
+          Car<- datos[i-1,2]
+          Carril<- rbind(Carril,Car)
+          
+          Com<- datos[i+1,2]
+          Comentario<- rbind(Comentario,Com)
+          
+          Alt.C<- datos[i+4,3]
+          Alt.Caida<- rbind(Alt.Caida,Alt.C)
+          
+          Hor<- datos[i+4,4]  
+          Hora<- rbind(Hora,Hor)
+          
+          Val<- datos[i+6,]
+          Valores<- rbind(Valores,Val)          }
+          
+          Encabezado<- c("Progresiva","Carril","Comentarios","Hora","Alt.Caida","Golpe",
+                         "D0","D20","D30","D60","D90","D120","D150","D180","D210",
+                         "Presion","Carga","TAir","TSur.","TMan.","PulseTime")
+          
+          pdato<-c(LecturaDeFWD(27)[c(1,2,4,8),2],LecturaDeFWD(27)[8,1],datos[6,]) %>%  
+            as.data.frame() %>% `colnames<-`(Encabezado)   
+          
+          resto<-cbind(Progresiva,Carril,Comentario,Hora,Alt.Caida,Valores) %>% `colnames<-`(Encabezado)
+          Union<-rbind(pdato,resto) %>% `row.names<-`(1:(nrow(resto)+1))
+          
+          Union$Hora <-  gsub("Time: ","",Union$Hora)
+          Union$Alt.Caida <- gsub("Fallheight: ","",Union$Alt.Caida)
+          
+          for (c in c(17:21)) { Union[,c]<- gsub(",",".",Union[,c])}
+          
+          NumCol <-c(1,5:21)            
+          
+          Union[ , NumCol] <- as.data.frame(apply(Union[ , NumCol], 2, as.numeric))
+          
+          Union<-arrange(Union,Progresiva)
+          
+          
+        } %>% rownames_to_column(var = "ID"))
+    
+          else{ 
+            data1<-{
+              LecturaDeFWD <-function(NumeroDeFila){
+                read.delim2(file=file1$datapath, header = FALSE,skip=NumeroDeFila, sep = "\t", dec = ",")}
+              
+              datos<- LecturaDeFWD(30)
+              
+              Intervalos<-function(NumRow){
+                dim1<- dim(datos)
+                input<- 1:(dim1[1])
+                x11<-input[(input %% NumRow) == 0]  }                                     
+              
+              Prog<-NULL
+              Progresiva<-NULL
+              Car<-NULL 
+              Carril<-NULL
+              Com<-NULL 
+              Comentario<-NULL
+              Alt.C<-NULL 
+              Alt.Caida<-NULL
+              Hor<-NULL 
+              Hora<-NULL
+              Val<-NULL  
+              Valores<-NULL
+              
+              
+              for (i in Intervalos(11)){      Prog<- datos[i-2,2]
+              Progresiva<- rbind(Progresiva,Prog)
+              
+              Car<- datos[i-1,2]
+              Carril<- rbind(Carril,Car)
+              
+              Com<- datos[i+1,2]
+              Comentario<- rbind(Comentario,Com)
+              
+              Alt.C<- datos[i+4,3]
+              Alt.Caida<- rbind(Alt.Caida,Alt.C)
+              
+              Hor<- datos[i+4,4]  
+              Hora<- rbind(Hora,Hor)
+              
+              Val<- datos[i+6,]
+              Valores<- rbind(Valores,Val)          }
+              
+              Encabezado<- c("Progresiva","Carril","Comentarios","Hora","Alt.Caida","Golpe",
+                             "D0","D20","D30","D60","D90","D120","D150","D180","D210",
+                             "Presion","Carga","TAir","TSur.","TMan.","PulseTime")
+              
+              pdato<-c(LecturaDeFWD(27)[c(1,2,4,8),2],LecturaDeFWD(27)[8,1],datos[6,]) %>%  
+                as.data.frame() %>% `colnames<-`(Encabezado)   
+              
+              resto<-cbind(Progresiva,Carril,Comentario,Hora,Alt.Caida,Valores) %>% `colnames<-`(Encabezado)
+              Union<-rbind(pdato,resto) %>% `row.names<-`(1:(nrow(resto)+1))
+              
+              Union$Hora <-  gsub("Time: ","",Union$Hora)
+              Union$Alt.Caida <- gsub("Fallheight: ","",Union$Alt.Caida)
+              
+              for (c in c(17:21)) { Union[,c]<- gsub(",",".",Union[,c])}
+              
+              NumCol <-c(1,5:21)            
+              
+              Union[ , NumCol] <- as.data.frame(apply(Union[ , NumCol], 2, as.numeric))
+              
+              Union<-arrange(Union,Progresiva)
+              
+              
+            } 
+            data2<-{
+              
+              LecturaDeFWD <- function(NumeroDeFila){
+                read.delim2(file=file2$datapath, header = FALSE,skip=NumeroDeFila, sep = "\t", dec = ",")}
+              
+              datos<- LecturaDeFWD(30)
+              
+              Intervalos<-function(NumRow){
+                dim1<- dim(datos)
+                input<- 1:(dim1[1])
+                x11<-input[(input %% NumRow) == 0]  }                                     
+              
+              Prog<-NULL
+              Progresiva<-NULL
+              Car<-NULL 
+              Carril<-NULL
+              Com<-NULL 
+              Comentario<-NULL
+              Alt.C<-NULL 
+              Alt.Caida<-NULL
+              Hor<-NULL 
+              Hora<-NULL
+              Val<-NULL  
+              Valores<-NULL
+              
+              
+              for (i in Intervalos(11)){      Prog<- datos[i-2,2]
+              Progresiva<- rbind(Progresiva,Prog)
+              
+              Car<- datos[i-1,2]
+              Carril<- rbind(Carril,Car)
+              
+              Com<- datos[i+1,2]
+              Comentario<- rbind(Comentario,Com)
+              
+              Alt.C<- datos[i+4,3]
+              Alt.Caida<- rbind(Alt.Caida,Alt.C)
+              
+              Hor<- datos[i+4,4]  
+              Hora<- rbind(Hora,Hor)
+              
+              Val<- datos[i+6,]
+              Valores<- rbind(Valores,Val)          }
+              
+              Encabezado<- c("Progresiva","Carril","Comentarios","Hora","Alt.Caida","Golpe",
+                             "D0","D20","D30","D60","D90","D120","D150","D180","D210",
+                             "Presion","Carga","TAir","TSur.","TMan.","PulseTime")
+              
+              pdato<-c(LecturaDeFWD(27)[c(1,2,4,8),2],LecturaDeFWD(27)[8,1],datos[6,]) %>%  
+                as.data.frame() %>% `colnames<-`(Encabezado)   
+              
+              resto<-cbind(Progresiva,Carril,Comentario,Hora,Alt.Caida,Valores) %>% `colnames<-`(Encabezado)
+              Union<-rbind(pdato,resto) %>% `row.names<-`(1:(nrow(resto)+1))
+              
+              Union$Hora <-  gsub("Time: ","",Union$Hora)
+              Union$Alt.Caida <- gsub("Fallheight: ","",Union$Alt.Caida)
+              
+              for (c in c(17:21)) { Union[,c]<- gsub(",",".",Union[,c])}
+              
+              NumCol <-c(1,5:21)            
+              
+              Union[ , NumCol] <- as.data.frame(apply(Union[ , NumCol], 2, as.numeric))
+              
+              Union<-arrange(Union,Progresiva)
+              
+              
+            }
+      
+            (arrange(rbind(data1,data2)) %>% rownames_to_column(var = "ID"))
+            
+            
+            
+            }
+      
+    
+  }) 
+  
+  
+  DatosDesc <- reactive({
+    file3 <- input$file3
+    file4 <- input$file4
+    
+    if (is.null(file4) & is.null(file3)){}
+    
+    else  
+      if (is.null(file4))({
+        
+        LecturaDeFWD <-function(NumeroDeFila){
+          read.delim2(file=file3$datapath, header = FALSE,skip=NumeroDeFila, sep = "\t", dec = ",")}
+        
+        datos<- LecturaDeFWD(30)
+        
+        Intervalos<-function(NumRow){
+          dim1<- dim(datos)
+          input<- 1:(dim1[1])
+          x11<-input[(input %% NumRow) == 0]  }                                     
+        
+        Prog<-NULL
+        Progresiva<-NULL
+        Car<-NULL 
+        Carril<-NULL
+        Com<-NULL 
+        Comentario<-NULL
+        Alt.C<-NULL 
+        Alt.Caida<-NULL
+        Hor<-NULL 
+        Hora<-NULL
+        Val<-NULL  
+        Valores<-NULL
+        
+        
+        for (i in Intervalos(11)){      Prog<- datos[i-2,2]
+        Progresiva<- rbind(Progresiva,Prog)
+        
+        Car<- datos[i-1,2]
+        Carril<- rbind(Carril,Car)
+        
+        Com<- datos[i+1,2]
+        Comentario<- rbind(Comentario,Com)
+        
+        Alt.C<- datos[i+4,3]
+        Alt.Caida<- rbind(Alt.Caida,Alt.C)
+        
+        Hor<- datos[i+4,4]  
+        Hora<- rbind(Hora,Hor)
+        
+        Val<- datos[i+6,]
+        Valores<- rbind(Valores,Val)          }
+        
+        Encabezado<- c("Progresiva","Carril","Comentarios","Hora","Alt.Caida","Golpe",
+                       "D0","D20","D30","D60","D90","D120","D150","D180","D210",
+                       "Presion","Carga","TAir","TSur.","TMan.","PulseTime")
+        
+        pdato<-c(LecturaDeFWD(27)[c(1,2,4,8),2],LecturaDeFWD(27)[8,1],datos[6,]) %>%  
+          as.data.frame() %>% `colnames<-`(Encabezado)   
+        
+        resto<-cbind(Progresiva,Carril,Comentario,Hora,Alt.Caida,Valores) %>% `colnames<-`(Encabezado)
+        Union<-rbind(pdato,resto) %>% `row.names<-`(1:(nrow(resto)+1))
+        
+        Union$Hora <-  gsub("Time: ","",Union$Hora)
+        Union$Alt.Caida <- gsub("Fallheight: ","",Union$Alt.Caida)
+        
+        for (c in c(17:21)) { Union[,c]<- gsub(",",".",Union[,c])}
+        
+        NumCol <-c(1,5:21)            
+        
+        Union[ , NumCol] <- as.data.frame(apply(Union[ , NumCol], 2, as.numeric))
+        
+        Union<-arrange(Union,desc(Progresiva))
+        
+        
+      } %>% rownames_to_column(var = "ID"))
+    
+    else{ 
+      data1<-{
+        LecturaDeFWD <-function(NumeroDeFila){
+          read.delim2(file=file3$datapath, header = FALSE,skip=NumeroDeFila, sep = "\t", dec = ",")}
+        
+        datos<- LecturaDeFWD(30)
+        
+        Intervalos<-function(NumRow){
+          dim1<- dim(datos)
+          input<- 1:(dim1[1])
+          x11<-input[(input %% NumRow) == 0]  }                                     
+        
+        Prog<-NULL
+        Progresiva<-NULL
+        Car<-NULL 
+        Carril<-NULL
+        Com<-NULL 
+        Comentario<-NULL
+        Alt.C<-NULL 
+        Alt.Caida<-NULL
+        Hor<-NULL 
+        Hora<-NULL
+        Val<-NULL  
+        Valores<-NULL
+        
+        
+        for (i in Intervalos(11)){      Prog<- datos[i-2,2]
+        Progresiva<- rbind(Progresiva,Prog)
+        
+        Car<- datos[i-1,2]
+        Carril<- rbind(Carril,Car)
+        
+        Com<- datos[i+1,2]
+        Comentario<- rbind(Comentario,Com)
+        
+        Alt.C<- datos[i+4,3]
+        Alt.Caida<- rbind(Alt.Caida,Alt.C)
+        
+        Hor<- datos[i+4,4]  
+        Hora<- rbind(Hora,Hor)
+        
+        Val<- datos[i+6,]
+        Valores<- rbind(Valores,Val)          }
+        
+        Encabezado<- c("Progresiva","Carril","Comentarios","Hora","Alt.Caida","Golpe",
+                       "D0","D20","D30","D60","D90","D120","D150","D180","D210",
+                       "Presion","Carga","TAir","TSur.","TMan.","PulseTime")
+        
+        pdato<-c(LecturaDeFWD(27)[c(1,2,4,8),2],LecturaDeFWD(27)[8,1],datos[6,]) %>%  
+          as.data.frame() %>% `colnames<-`(Encabezado)   
+        
+        resto<-cbind(Progresiva,Carril,Comentario,Hora,Alt.Caida,Valores) %>% `colnames<-`(Encabezado)
+        Union<-rbind(pdato,resto) %>% `row.names<-`(1:(nrow(resto)+1))
+        
+        Union$Hora <-  gsub("Time: ","",Union$Hora)
+        Union$Alt.Caida <- gsub("Fallheight: ","",Union$Alt.Caida)
+        
+        for (c in c(17:21)) { Union[,c]<- gsub(",",".",Union[,c])}
+        
+        NumCol <-c(1,5:21)            
+        
+        Union[ , NumCol] <- as.data.frame(apply(Union[ , NumCol], 2, as.numeric))
+        
+        Union<-arrange(Union,Progresiva)
+        
+        
+      } 
+      data2<-{
+        
+        LecturaDeFWD <- function(NumeroDeFila){
+          read.delim2(file=file4$datapath, header = FALSE,skip=NumeroDeFila, sep = "\t", dec = ",")}
+        
+        datos<- LecturaDeFWD(30)
+        
+        Intervalos<-function(NumRow){
+          dim1<- dim(datos)
+          input<- 1:(dim1[1])
+          x11<-input[(input %% NumRow) == 0]  }                                     
+        
+        Prog<-NULL
+        Progresiva<-NULL
+        Car<-NULL 
+        Carril<-NULL
+        Com<-NULL 
+        Comentario<-NULL
+        Alt.C<-NULL 
+        Alt.Caida<-NULL
+        Hor<-NULL 
+        Hora<-NULL
+        Val<-NULL  
+        Valores<-NULL
+        
+        
+        for (i in Intervalos(11)){      Prog<- datos[i-2,2]
+        Progresiva<- rbind(Progresiva,Prog)
+        
+        Car<- datos[i-1,2]
+        Carril<- rbind(Carril,Car)
+        
+        Com<- datos[i+1,2]
+        Comentario<- rbind(Comentario,Com)
+        
+        Alt.C<- datos[i+4,3]
+        Alt.Caida<- rbind(Alt.Caida,Alt.C)
+        
+        Hor<- datos[i+4,4]  
+        Hora<- rbind(Hora,Hor)
+        
+        Val<- datos[i+6,]
+        Valores<- rbind(Valores,Val)          }
+        
+        Encabezado<- c("Progresiva","Carril","Comentarios","Hora","Alt.Caida","Golpe",
+                       "D0","D20","D30","D60","D90","D120","D150","D180","D210",
+                       "Presion","Carga","TAir","TSur.","TMan.","PulseTime")
+        
+        pdato<-c(LecturaDeFWD(27)[c(1,2,4,8),2],LecturaDeFWD(27)[8,1],datos[6,]) %>%  
+          as.data.frame() %>% `colnames<-`(Encabezado)   
+        
+        resto<-cbind(Progresiva,Carril,Comentario,Hora,Alt.Caida,Valores) %>% `colnames<-`(Encabezado)
+        Union<-rbind(pdato,resto) %>% `row.names<-`(1:(nrow(resto)+1))
+        
+        Union$Hora <-  gsub("Time: ","",Union$Hora)
+        Union$Alt.Caida <- gsub("Fallheight: ","",Union$Alt.Caida)
+        
+        for (c in c(17:21)) { Union[,c]<- gsub(",",".",Union[,c])}
+        
+        NumCol <-c(1,5:21)            
+        
+        Union[ , NumCol] <- as.data.frame(apply(Union[ , NumCol], 2, as.numeric))
+        
+        Union<-arrange(Union,Progresiva)
+        
+        
+      }
+      
+      (arrange(rbind(data1,data2),desc(rbind(data1,data2))) %>% rownames_to_column(var = "ID"))
+      
+    }
+    
+    
+  })
+  
+ 
+  # Tabla Datos Ascendente
+  output$fileAsc <- renderDataTable({
+    if(is.null(DatosAsc())){return ()}
+    input$file1
+    input$file2
+  })
+
+  
+ 
+  
+  # Tabla Datos Descendente
+  output$fileDesc <- renderDataTable({
+    if(is.null(DatosDesc())){return ()}
+    input$file3
+    input$file4
+  })
+  
+
+
+    
+
+  # Valores Ascendente
+  output$tableAsc <- renderDT(server=FALSE,{
+    if(is.null(DatosAsc())){return ()}
+    datatable( DatosAsc(),
+               extensions = c("Buttons"),
+               caption = htmltools::tags$caption( style = 'caption-side: top; text-align: center; color:black; font-size:200% ;',
+                                                  paste("Ensayo Deflexiones ","Ruta Provincial ", input$RutaNum, 
+                                                        "  Tramo: ",input$Tramo, "  Carril: Ascendente",  sep = "")),
+               style = "bootstrap4",
+               rownames = FALSE,
+               options = list( 
+                 pageLength = -1,
+                 dom = 'Bfrtip',
+                 buttons = list(
+                   list(extend = "csv", text = "*.csv", filename = paste("deflexiones ",input$RutaNum)
+                       ),
+                   list(extend = "excel", text = "*.xlsx", filename = paste("deflexiones ",input$RutaNum),
+                        exportOptions = list(
+                          modifier = list(page = "all")
+                        )
+                       ),
+                   list(extend = "pdf", text = "*.pdf", filename = paste("deflexiones ",input$RutaNum)
+                       ),
+                   list(extend="print")
+                       )
+                   
+                   ))
+    
+      
+      
+      
+      
+      
+      
+      
+  })
+  
+  # Valores Descendente
+  output$tableDesc <- renderDT({
+    if(is.null(DatosDesc())){return ()}
+    datatable( DatosDesc(),
+               extensions = c("Buttons"),
+               caption = htmltools::tags$caption( style = 'caption-side: top; text-align: center; color:black; font-size:200% ;',
+                                                  paste("Ensayo Deflexiones ","Ruta Provincial ", input$RutaNum, 
+                                                        "  Tramo: ",input$Tramo, "  Carril: Descendente",  sep = "")),
+               style = "bootstrap4",
+               rownames = FALSE,
+               options = list( 
+                 pageLength = -1,
+                 dom = 'Bfrtip',
+                 buttons = list(
+                   list(extend = "csv", text = "*.csv", filename = paste("deflexiones ",input$RutaNum)
+                   ),
+                   list(extend = "excel", text = "*.xlsx", filename = paste("deflexiones ",input$RutaNum),
+                        exportOptions = list(
+                          modifier = list(page = "all")
+                        )
+                   ),
+                   list(extend = "pdf", text = "*.pdf", filename = paste("deflexiones ",input$RutaNum)
+                   ),
+                   list(extend="print")
+                 )
+                 
+               ))
+    
+  })
+ 
+
+  # the following renderUI is used to dynamically generate the tabsets when the file is loaded. Until the file is loaded, app will not show the tabset.
+  output$tb <- renderUI({
+    if(is.null(DatosAsc()))
+      h2(img(src="fwd.jpg", height=800))
+    
+    else
+      tabsetPanel(tabPanel("Datos Ascendente",fluidRow(plotOutput("plotAsc")),
+                                              fluidRow(DTOutput("tableAsc"))),
+                  tabPanel("Datos Descendente",fluidRow(plotOutput("plotDesc")),
+                                               fluidRow(DTOutput("tableDesc")))
+                  
+                  )
+                  
+  })
+  
+
+  
+  output$plotAsc <- renderPlot({
+    if(is.null(DatosAsc())){return ()}
+    ggplot(DatosAsc()) + 
+      geom_point(aes(x = Progresiva, y = D0),size = 1, colour = "#cb181d") +
+      geom_line(aes(x = Progresiva, y = D0),size = 0.4L, colour = "#0c4c8a")+
+      labs(x = "Progresivas [m]", y = "Deflexion", title = "Grafico Deflexiones D0") +
+      theme_light()
+     
+  })
+  
+  output$plotDesc <- renderPlot({
+    if(is.null(DatosDesc())){return ()}
+    ggplot(DatosDesc()) + 
+      geom_point(aes(x = Progresiva, y = D0),size = 1, colour = "#cb181d") +
+      geom_line(aes(x = Progresiva, y = D0),size = 0.4L, colour = "#0c4c8a")+
+      labs(x = "Progresivas [m]", y = "Deflexion", title = "Grafico Deflexiones D0") +
+      theme_light()
+  })
+  
+  
+  
+ 
+  # Descarga de datos
+  
+  output$TablaDatos <- downloadHandler(
+    filename = function() {
+      paste("Delfexiones ",input$RutaNum, ".xlsx", sep = "")
+    },
+    content = function(file) {
+      my_workbook <- createWorkbook()
+      
+      if (is.null(DatosDesc())) {
+      addWorksheet(wb = my_workbook,sheetName = "Ascendente")
+      setColWidths( my_workbook, 1, cols = 1:21,widths = c(12, 10, 15,6,10,6,6,6,6,6,6,6,6,6,6,8,6,6,6,6,10))
+      setRowHeights(my_workbook,sheet = 1,rows= 5, heights= 20)
+      writeData(my_workbook,sheet = 1, c("Ensayo Deflexiones",paste("Ruta Provincial ",input$RutaNum, "  Tramo: ", input$Tramo, "  Carril: Ascendente",  sep = "")),startRow = 1,startCol = 2)
+      writeData(my_workbook,sheet = 1,c(paste("Conductor: ",input$Chofer,"  -  Operador: ",input$Operador, "  -  Seguridad: ",input$Seguridad ,sep = "")),startRow = 3,startCol = 5)
+      writeData(my_workbook,sheet = 1,c(paste("Direccion General de Programacion - ",today(),sep = "")),startRow = 1,startCol = 6)
+      writeData(my_workbook,sheet = 1,paste("Fecha de Esayo: ",input$fecha[1]," al ",input$fecha[2],sep = ""),startRow = 4,startCol = 15)
+      addStyle(my_workbook, sheet = 1,style = createStyle(fontSize = 10 ),rows = 4, cols = 15)
+      addStyle(my_workbook, sheet = 1,style = createStyle(fontSize = 20,textDecoration = "bold" ),rows = 1:2, cols = 2)
+      addStyle(my_workbook, sheet = 1,style = createStyle(  fontSize = 22,  textDecoration = "bold" ),rows = 1, cols = 6)
+      writeData(my_workbook,sheet = 1,DatosAsc()[,2:22],startRow = 5,startCol = 1)
+      addStyle(my_workbook, sheet = 1, style = createStyle( fgFill = "#0b00de", halign = "center",fontColour = "#ffffff", fontSize = 13,border = c("top", "bottom", "left", "right")),  rows = 5,  cols = 1:21,gridExpand = TRUE)
+      addStyle( my_workbook,sheet = 1, style = createStyle( fgFill = "#f2f2f2", numFmt = "0.00",border = c("top", "bottom", "left", "right") ), rows = 6:(nrow(DatosAsc())+5),cols = c(17:21), gridExpand = TRUE )
+      addStyle( my_workbook,sheet = 1, style = createStyle( fgFill = "#f2f2f2", numFmt = "0" ,border = c("top", "bottom", "left", "right") ),rows = 6:(nrow(DatosAsc())+5),  cols = c(1:6), gridExpand = TRUE )
+      addStyle( my_workbook,sheet = 1, style = createStyle( fgFill = "#f2f2f2", numFmt = "0", textDecoration = "bold",border = c("top", "bottom", "left", "right") ), rows = 6:(nrow(DatosAsc())+5), cols = 7, gridExpand = TRUE)
+      addStyle( my_workbook,sheet = 1, style = createStyle( fgFill = "#f2f2f2", numFmt = "0",border = c("top", "bottom", "left", "right") ),rows = 6:(nrow(DatosAsc())+5),cols = (8:16), gridExpand = TRUE)
+      addStyle( my_workbook,sheet = 1, style = createStyle(halign =  "right"), rows = 1, cols = 20)
+      
+      p1<- ggplot(DatosAsc()) + 
+        geom_point(aes(x = Progresiva, y = D0),size = 1, colour = "#cb181d") +
+        geom_line(aes(x = Progresiva, y = D0),size = 0.4L, colour = "#0c4c8a")+
+        labs(x = "Progresivas [m]", y ="Deflexiones" , title = paste("Deflexiones D0 ",input$RutaNum," Carril Ascendente")) +
+        theme_light()
+      
+      print(p1) # plot needs to be showing
+      insertPlot(my_workbook, 1, fileType = "png", xy =c(23,5))
+      insertImage(my_workbook,1,"shared.png",width = 1.15,height = 1.15,startRow = 1,startCol = 20,dpi = 300, units = "in" )
+      insertImage(my_workbook,1,"DPV.jpg",width = 0.85,height = 1.15,startRow = 1,startCol = 1,dpi = 300, units = "in" )
+      
+      saveWorkbook(my_workbook, file)}
+      
+      else {
+      
+        addWorksheet(wb = my_workbook,sheetName = "Ascendente")
+        setColWidths( my_workbook, 1, cols = 1:21,widths = c(12, 10, 15,6,10,6,6,6,6,6,6,6,6,6,6,8,6,6,6,6,10))
+        setRowHeights(my_workbook,sheet = 1,rows= 5, heights= 20)
+        writeData(my_workbook,sheet = 1, c("Ensayo Deflexiones",paste("Ruta Provincial ",input$RutaNum, "  Tramo: ", input$Tramo, "  Carril: Ascendente",  sep = "")),startRow = 1,startCol = 2)
+        writeData(my_workbook,sheet = 1,c(paste("Conductor: ",input$Chofer,"  -  Operador: ",input$Operador, "  -  Seguridad: ",input$Seguridad ,sep = "")),startRow = 3,startCol = 4)
+        writeData(my_workbook,sheet = 1,c(paste("Direccion General de Programacion - ",today(),sep = "")),startRow = 1,startCol = 6)
+        writeData(my_workbook,sheet = 1,paste("Fecha de Esayo: ",input$fecha[1]," al ",input$fecha[2],sep = ""),startRow = 4,startCol = 15)
+        addStyle(my_workbook, sheet = 1,style = createStyle(fontSize = 10 ),rows = 4, cols = 15)
+        addStyle(my_workbook, sheet = 1,style = createStyle(fontSize = 20,textDecoration = "bold" ),rows = 1:2, cols = 2)
+        addStyle(my_workbook, sheet = 1,style = createStyle(  fontSize = 22,  textDecoration = "bold" ),rows = 1, cols = 6)
+        writeData(my_workbook,sheet = 1,DatosAsc()[,2:22],startRow = 5,startCol = 1)
+        addStyle(my_workbook, sheet = 1, style = createStyle( fgFill = "#0b00de", halign = "center",fontColour = "#ffffff", fontSize = 13,border = c("top", "bottom", "left", "right")),  rows = 5,  cols = 1:21,gridExpand = TRUE)
+        addStyle( my_workbook,sheet = 1, style = createStyle( fgFill = "#f2f2f2", numFmt = "0.00",border = c("top", "bottom", "left", "right") ), rows = 6:(nrow(DatosAsc())+5),cols = c(17:21), gridExpand = TRUE )
+        addStyle( my_workbook,sheet = 1, style = createStyle( fgFill = "#f2f2f2", numFmt = "0",border = c("top", "bottom", "left", "right")  ),rows = 6:(nrow(DatosAsc())+5),  cols = c(1:6), gridExpand = TRUE )
+        addStyle( my_workbook,sheet = 1, style = createStyle( fgFill = "#f2f2f2", numFmt = "0", textDecoration = "bold",border = c("top", "bottom", "left", "right") ), rows = 6:(nrow(DatosAsc())+5), cols = 7, gridExpand = TRUE)
+        addStyle( my_workbook,sheet = 1, style = createStyle( fgFill = "#f2f2f2", numFmt = "0",border = c("top", "bottom", "left", "right") ),rows = 6:(nrow(DatosAsc())+5),cols = (8:16), gridExpand = TRUE)
+        
+       
+        # *******************************************************************************************************************************
+        addWorksheet(wb = my_workbook,sheetName = "Descendente")
+        setColWidths(my_workbook,2,cols = 1:21,widths = c(12, 10, 15,6,10,6,6,6,6,6,6,6,6,6,6,8,6,6,6,6,10))
+        setRowHeights(my_workbook,sheet = 2,rows= 5, heights= 20)
+        writeData(my_workbook,sheet = 2,c("Ensayo Deflexiones",paste("Ruta Provincial ",input$RutaNum, "  Tramo: ", input$Tramo, "  Carril: Descendente",  sep = "")),startRow = 1,startCol = 2)
+        writeData(my_workbook,sheet = 2,c(paste("Conductor: ",input$Chofer,"  -  Operador: ",input$Operador, "  -  Seguridad: ",input$Seguridad ,sep = "")),startRow = 3,startCol = 4      )
+        writeData(my_workbook,sheet = 2,c(paste("Direccion General de Programacion - ",today(),sep = "")),startRow = 1,startCol = 6 )
+        writeData(my_workbook,sheet = 2,DatosDesc()[,2:22],startRow = 5,startCol = 1)
+        writeData(my_workbook,sheet = 2,paste("Fecha de Esayo: ",input$fecha[1]," al ",input$fecha[2],sep = ""),startRow = 4,startCol = 15)
+        addStyle(my_workbook, sheet = 2,style = createStyle(fontSize = 10 ),rows = 4, cols = 15)
+        addStyle(my_workbook,sheet =  2,style = createStyle(fontSize = 20,textDecoration = "bold"),rows = 1:2, cols = 2)
+        addStyle(my_workbook,sheet = 2,style = createStyle( fontSize = 22, textDecoration = "bold" ), rows = 1, cols = 6)
+        addStyle(my_workbook,sheet = 2,style = createStyle( fgFill = "#0b00de",halign = "center",fontColour = "#ffffff",fontSize = 13,border = c("top", "bottom", "left", "right")),rows = 5,cols = 1:21,gridExpand = TRUE)
+        addStyle(my_workbook,sheet = 2,style = createStyle(fgFill = "#f2f2f2",numFmt = "0.00", border = c("top", "bottom", "left", "right")),rows = 6:(nrow(DatosDesc())+5),cols = c(17:21),gridExpand = TRUE)
+        addStyle(my_workbook,sheet = 2,style = createStyle(fgFill = "#f2f2f2",numFmt = "0",border = c("top", "bottom", "left", "right")),rows = 6:(nrow(DatosDesc())+5),cols = c(1:6),gridExpand = TRUE)
+        addStyle(my_workbook,sheet = 2,style = createStyle(fgFill = "#f2f2f2",numFmt = "0",textDecoration = "bold",border = c("top", "bottom", "left", "right")),rows = 6:(nrow(DatosDesc())+5),cols = 7,gridExpand = TRUE)
+        addStyle(my_workbook,sheet = 2,style = createStyle(fgFill = "#f2f2f2",numFmt = "0",border = c("top", "bottom", "left", "right")),rows = 6:(nrow(DatosDesc())+5),cols = (8:16),gridExpand = TRUE)
+        
+      
+              p1<- ggplot(DatosAsc()) + 
+                geom_point(aes(x = Progresiva, y = D0),size = 1, colour = "#cb181d") +
+                geom_line(aes(x = Progresiva, y = D0),size = 0.4L, colour = "#0c4c8a")+
+                labs(x = "Progresivas [m]", y ="Deflexiones" , title = paste("Deflexiones D0 ",input$RutaNum," Carril Ascendente")) +
+                theme_light()
+              
+              print(p1) # plot needs to be showing
+              insertPlot(my_workbook, 1, fileType = "png", xy =c(23,5))
+              
+              p2<- ggplot(DatosDesc()) + 
+                geom_point(aes(x = Progresiva, y = D0),size = 1, colour = "#cb181d") +
+                geom_line(aes(x = Progresiva, y = D0),size = 0.4L, colour = "#0c4c8a")+
+                labs(x = "Progresivas [m]", y ="Deflexiones" , title = paste("Deflexiones D0 ",input$RutaNum," Carril Descendente")) +
+                theme_light()
+              
+              print(p2) # plot needs to be showing
+              insertPlot(my_workbook, 2, fileType = "png", xy =c(23,5))
+              
+              insertImage(my_workbook,1,"shared.png",width = 1.15,height = 1.15,startRow = 1,startCol = 20,dpi = 300, units = "in" )
+              insertImage(my_workbook,2,"shared.png",width = 1.15,height = 1.15,startRow = 1,startCol = 20,dpi = 300, units = "in" )
+              insertImage(my_workbook,1,"DPV.jpg",width = 0.85,height = 1.15,startRow = 1,startCol = 1,dpi = 300, units = "in" )
+              insertImage(my_workbook,2,"DPV.jpg",width = 0.85,height = 1.15,startRow = 1,startCol = 1,dpi = 300, units = "in" )
+              
+        saveWorkbook(my_workbook, file)
+      }
+      
+      read.xlsx(my_workbook)
+      
+      
+  })
+
+  
+}
